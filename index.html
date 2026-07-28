@@ -334,22 +334,22 @@
 
     #startBtn {
       margin: 0;
-      padding: 20px 46px;
-      font-size: 24px;
+      padding: 14px 34px;
+      font-size: 20px;
       font-weight: 800;
       letter-spacing: 2px;
       cursor: pointer;
-      background: #2a1919;
-      border: 1px solid #a86666;
-      color: #ffe1e1;
+      background: #2d7d37;
+      border: 1px solid #8fd66a;
+      color: #f2ffe9;
       border-radius: 4px;
-      box-shadow: 0 0 8px rgba(184, 85, 85, 0.42), 0 0 20px rgba(82, 28, 28, 0.65);
+      box-shadow: 0 0 10px rgba(106, 221, 84, 0.72), 0 0 24px rgba(28, 94, 42, 0.8);
       text-transform: uppercase;
     }
 
     #startBtn:hover {
       transform: translate(-50%, -50%) scale(1.06);
-      background: #482727;
+      background: #3f9b49;
     }
 
     #startScreen {
@@ -357,41 +357,43 @@
       inset: 0;
       z-index: 3;
       display: block;
+      overflow: hidden;
+      background: #020504;
     }
 
-    #startBackdrop {
-      position: fixed;
+    #startScreen::before {
+      content: "";
+      position: absolute;
       inset: 0;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.04) 50%, rgba(0, 0, 0, 0.26)),
+        url("start-screen-background-wide.png") center / cover no-repeat;
       z-index: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      filter: brightness(0.72);
     }
 
-    #startMuteBtn {
-      position: fixed;
-      z-index: 4;
-      top: 18px;
-      right: 18px;
-      width: 46px;
-      height: 46px;
-      border: 1px solid rgba(219, 145, 145, 0.75);
+    #mainMuteBtn {
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(119, 177, 92, 0.85);
       border-radius: 50%;
-      color: #ffe1e1;
-      background: rgba(60, 16, 16, 0.9);
-      box-shadow: 0 0 12px rgba(255, 91, 91, 0.7), 0 0 26px rgba(180, 30, 30, 0.55);
+      color: #eaffde;
+      background: rgba(21, 64, 31, 0.92);
+      box-shadow: 0 0 10px rgba(101, 197, 79, 0.55);
       cursor: pointer;
-      font-size: 21px;
-      animation: mutePulse 1.25s ease-in-out infinite alternate;
+      font-size: 17px;
     }
 
-    #startMuteBtn:hover { background: rgba(82, 31, 31, 0.9); }
+    #mainMuteBtn:hover { background: rgba(40, 100, 48, 0.95); }
 
-    @keyframes mutePulse {
-      from { box-shadow: 0 0 8px rgba(255, 91, 91, 0.5), 0 0 18px rgba(180, 30, 30, 0.35); }
-      to { box-shadow: 0 0 16px rgba(255, 119, 119, 0.95), 0 0 34px rgba(200, 35, 35, 0.8); }
+    #countdownRow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: -2px;
     }
 
     #startLineup {
@@ -402,13 +404,19 @@
       height: clamp(220px, 42vh, 330px);
       pointer-events: none;
       transform: translateX(-50%);
+      z-index: 1;
     }
 
     #startBtn {
       position: absolute;
       left: 50%;
-      top: 45%;
+      top: 49%;
       transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+
+    @media (orientation: portrait) {
+      #startBtn { top: 60%; }
     }
 
     .start-lineup-character {
@@ -446,9 +454,6 @@
   <video id="bgVideo" loop playsinline>
     <source src="bg.mp4" type="video/mp4">
   </video>
-  <video id="startBackdrop" autoplay muted loop playsinline aria-hidden="true">
-    <source src="start-screen-background.mp4" type="video/mp4">
-  </video>
 
   <img id="characterPop" src="side-character.png" alt="">
   <img id="dizzyStars" src="dizzy-stars.png" alt="">
@@ -474,7 +479,10 @@
   <div class="content">
     <h1>ABU FAHAD WAITING</h1>
     <img class="doomsday-logo" src="doomsday-logo-transparent.png" alt="Doomsday">
-    <div id="countdown"></div>
+    <div id="countdownRow">
+      <div id="countdown"></div>
+      <button id="mainMuteBtn" type="button" aria-label="كتم صوت الخلفية">🔊</button>
+    </div>
   </div>
 
   <div id="startScreen">
@@ -487,30 +495,21 @@
     </div>
     <button id="startBtn">CLICK HERE</button>
   </div>
-  <button id="startMuteBtn" type="button" aria-label="تشغيل صوت الخلفية">🔇</button>
 
   <script>
     const releaseDate = new Date("2026-12-18T00:00:00");
     const startScreen = document.getElementById("startScreen");
-    const startBackdrop = document.getElementById("startBackdrop");
-    const startMuteBtn = document.getElementById("startMuteBtn");
-    let startBackdropMuted = true;
-    function setStartBackdropMuted(muted) {
-      startBackdropMuted = muted;
-      startBackdrop.muted = muted;
-      startBackdrop.volume = 0.25;
-      startMuteBtn.textContent = muted ? "🔇" : "🔊";
-      startMuteBtn.setAttribute("aria-label", muted ? "تشغيل صوت الخلفية" : "كتم صوت الخلفية");
+    const mainMuteBtn = document.getElementById("mainMuteBtn");
+    function setMainVideoMuted(muted) {
+      const mainVideo = document.getElementById("bgVideo");
+      mainVideo.muted = muted;
+      mainMuteBtn.textContent = muted ? "🔇" : "🔊";
+      mainMuteBtn.setAttribute("aria-label", muted ? "تشغيل صوت الخلفية" : "كتم صوت الخلفية");
     }
-    function enableStartBackdropSound() {
-      if (startScreen.style.display === "none") return;
-      setStartBackdropMuted(false);
-      startBackdrop.play().catch(() => {});
-    }
-    document.addEventListener("pointerdown", enableStartBackdropSound, { once: true });
-    startMuteBtn.addEventListener("click", () => {
-      setStartBackdropMuted(!startBackdropMuted);
-      if (!startBackdropMuted) startBackdrop.play().catch(() => {});
+    mainMuteBtn.addEventListener("click", () => {
+      const mainVideo = document.getElementById("bgVideo");
+      setMainVideoMuted(!mainVideo.muted);
+      if (!mainVideo.muted) mainVideo.play().catch(() => {});
     });
     const startHeroElements = {
       iron: document.getElementById("startIron"),
@@ -989,9 +988,7 @@
         content.style.display = "block";
         clearStartHeroEffect();
         startScreen.style.display = "none";
-        startBackdrop.pause();
-        startBackdrop.style.display = "none";
-        startMuteBtn.style.display = "none";
+        setMainVideoMuted(false);
         nextCharacterTimer = setTimeout(showRandomCharacter, 900);
         updateCountdown();
         setInterval(updateCountdown, 1000);
