@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avengers Countdown</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: black;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+
+    #bgVideo {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0.35;
+    }
+
+    #characterPop {
+      position: fixed;
+      z-index: 4;
+      display: none;
+      width: clamp(145px, 22vw, 270px);
+      height: auto;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    #characterPop.show {
+      display: block;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #dizzyStars {
+      position: fixed;
+      z-index: 5;
+      display: none;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    #dizzyStars.active {
+      display: block;
+      animation: starsFollowHead 0.42s ease-in-out infinite alternate;
+    }
+
+    #captainShield {
+      position: fixed;
+      z-index: 5;
+      display: none;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    #captainShield.active {
+      display: block;
+      animation: shieldBlock 0.22s ease-out both;
+    }
+
+    #spiderWeb {
+      position: fixed;
+      z-index: 5;
+      display: none;
+      pointer-events: none;
+      transform-origin: 0 0;
+    }
+
+    #spiderWeb.active {
+      display: block;
+      animation: webShoot 0.45s ease-out both;
+    }
+
+    #webImpact {
+      position: fixed;
+      z-index: 6;
+      display: none;
+      pointer-events: none;
+      --hulk-flip: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    #webImpact.active {
+      display: block;
+      animation: webImpactLand 0.2s ease-out both;
+    }
+
+    #ironGlow {
+      position: fixed;
+      z-index: 6;
+      display: none;
+      pointer-events: none;
+      --iron-flip: 1;
+      transform-origin: center;
+      clip-path: polygon(4% 0, 96% 0, 72% 100%, 28% 100%);
+      background: linear-gradient(145deg, #fffbd0 0%, #ffe86d 38%, #ffc51c 100%);
+      box-shadow: 0 0 3px #fff8b3, 0 0 8px #ffd21e, 0 0 15px rgba(255, 194, 25, 0.9);
+    }
+
+    #ironGlow.active {
+      display: block;
+      animation: reactorPower 0.25s ease-out both;
+    }
+
+    #ironBeam {
+      position: fixed;
+      z-index: 5;
+      display: none;
+      pointer-events: none;
+      border-radius: 50%;
+      background: repeating-conic-gradient(from 0deg, rgba(255, 238, 118, 0.9) 0deg 7deg, transparent 7deg 25deg);
+      -webkit-mask-image: radial-gradient(circle, transparent 0 28%, #000 42%, transparent 72%);
+      mask-image: radial-gradient(circle, transparent 0 28%, #000 42%, transparent 72%);
+      filter: drop-shadow(0 0 4px #ffd21e);
+      transform: translate(-50%, -50%) scale(0.2);
+    }
+
+    #ironBeam.active {
+      display: block;
+      animation: reactorBeam 0.48s ease-out both;
+    }
+
+    #hulkAngerMarks {
+      position: fixed;
+      z-index: 6;
+      display: none;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 0 4px rgba(255, 70, 70, 0.7));
+    }
+
+    #hulkAngerMarks.active {
+      display: block;
+      animation: hulkFury 0.52s ease-out both;
+    }
+
+    @keyframes starsFollowHead {
+      from { transform: translate(-50%, -50%) translateX(-7px) scaleX(1); }
+      to { transform: translate(-50%, -50%) translateX(7px) scaleX(-1); }
+    }
+
+    @keyframes shieldBlock {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes webShoot {
+      from { clip-path: inset(0 100% 0 0); opacity: 0.2; }
+      to { clip-path: inset(0 0 0 0); opacity: 1; }
+    }
+
+    @keyframes webImpactLand {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(0.25); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes reactorPower {
+      from { opacity: 0; transform: scale(0.35) scaleY(var(--iron-flip)); }
+      to { opacity: 1; transform: scale(1) scaleY(var(--iron-flip)); }
+    }
+
+    @keyframes reactorBeam {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+      32% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.62); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes hulkFury {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.45) scaleY(var(--hulk-flip)); }
+      68% { opacity: 1; transform: translate(-50%, -50%) scale(1.08) scaleY(var(--hulk-flip)); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1) scaleY(var(--hulk-flip)); }
+    }
+
+    #characterPop.peek-right {
+      top: 50%;
+      right: 0;
+      transform: translate(105%, -50%);
+    }
+
+    #characterPop.peek-left {
+      top: 44%;
+      left: 0;
+      transform: translate(-105%, -50%);
+    }
+
+    #characterPop.peek-top-right {
+      top: 0;
+      right: 8%;
+      transform: translateY(-105%) scaleY(-1);
+    }
+
+    #characterPop.peek-bottom-left {
+      bottom: 0;
+      left: 10%;
+      transform: translateY(105%);
+    }
+
+    #characterPop.peek-top-left {
+      top: 0;
+      left: 13%;
+      transform: translateY(-105%) scaleY(-1);
+    }
+
+    #characterPop.peek-bottom-right {
+      bottom: 0;
+      right: 12%;
+      transform: translateY(105%);
+    }
+
+    #characterPop.peek-right-vertical {
+      bottom: 0;
+      right: 1%;
+      transform: translateY(105%);
+    }
+
+    #characterPop.peek-left-vertical {
+      bottom: 0;
+      left: 1%;
+      transform: translateY(105%);
+    }
+
+    #characterPop.peek-right.show {
+      animation: peekRight 4.6s ease-in-out;
+    }
+
+    #characterPop.peek-left.show {
+      animation: peekLeft 4.6s ease-in-out;
+    }
+
+    #characterPop.peek-left.iron-left.show {
+      animation: peekIronLeft 4.6s ease-in-out;
+    }
+
+    #characterPop.peek-top-right.show {
+      animation: peekTop 4.6s ease-in-out;
+    }
+
+    #characterPop.peek-bottom-left.show {
+      animation: peekBottom 4.6s ease-in-out;
+    }
+
+    #characterPop.peek-top-left.show {
+      animation: peekTop 4.6s ease-in-out;
+    }
+
+    #characterPop.peek-bottom-right.show {
+      animation: peekBottom 4.6s ease-in-out;
+    }
+
+    #characterPop.peek-right-vertical.show,
+    #characterPop.peek-left-vertical.show {
+      animation: peekBottom 4.6s ease-in-out;
+    }
+
+    @keyframes peekRight {
+      0%, 100% { transform: translate(105%, -50%); }
+      26%, 74% { transform: translate(48%, -50%); }
+    }
+
+    @keyframes peekLeft {
+      0%, 100% { transform: translate(-105%, -50%); }
+      26%, 74% { transform: translate(-48%, -50%); }
+    }
+
+    @keyframes peekIronLeft {
+      0%, 100% { transform: translate(-105%, -50%); }
+      26%, 74% { transform: translate(-30%, -50%); }
+    }
+
+    @keyframes peekTop {
+      0%, 100% { transform: translateY(-105%) scaleY(-1); }
+      26%, 74% { transform: translateY(-48%) scaleY(-1); }
+    }
+
+    @keyframes peekBottom {
+      0%, 100% { transform: translateY(105%); }
+      26%, 74% { transform: translateY(48%); }
+    }
+
+    .content {
+      position: static;
+      width: 100%;
+      text-align: center;
+      z-index: 2;
+      display: none;
+    }
+
+    h1 {
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(38px, 6vw, 62px);
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      word-spacing: -0.08em;
+      margin: 0;
+      color: #4c855b;
+      -webkit-text-stroke: 1px #25351c;
+      text-shadow: 2px 2px 0 #050805, 0 0 14px rgba(112, 148, 69, 0.55);
+      text-transform: uppercase;
+    }
+
+    .doomsday-logo {
+      display: block;
+      width: min(520px, 90vw);
+      max-width: 100%;
+      height: clamp(70px, 13vw, 92px);
+      object-fit: cover;
+      object-position: center;
+      margin: -6px auto -8px;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 10px rgba(97, 155, 57, 0.28));
+    }
+
+    #countdown {
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(26px, 4vw, 46px);
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      margin-top: -2px;
+      color: #4c855b;
+      text-shadow: 2px 2px 0 #050805, 0 0 12px rgba(112, 148, 69, 0.5);
+    }
+
+    #startBtn {
+      margin: 0;
+      padding: 20px 46px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      cursor: pointer;
+      background: #2a1919;
+      border: 1px solid #a86666;
+      color: #ffe1e1;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(184, 85, 85, 0.42), 0 0 20px rgba(82, 28, 28, 0.65);
+      text-transform: uppercase;
+    }
+
+    #startBtn:hover {
+      transform: translate(-50%, -50%) scale(1.06);
+      background: #482727;
+    }
+
+    #startScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      display: block;
+    }
+
+    #startBackdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: brightness(0.72);
+    }
+
+    #startMuteBtn {
+      position: fixed;
+      z-index: 4;
+      top: 18px;
+      right: 18px;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(219, 145, 145, 0.75);
+      border-radius: 50%;
+      color: #ffe1e1;
+      background: rgba(60, 16, 16, 0.9);
+      box-shadow: 0 0 12px rgba(255, 91, 91, 0.7), 0 0 26px rgba(180, 30, 30, 0.55);
+      cursor: pointer;
+      font-size: 21px;
+      animation: mutePulse 1.25s ease-in-out infinite alternate;
+    }
+
+    #startMuteBtn:hover { background: rgba(82, 31, 31, 0.9); }
+
+    @keyframes mutePulse {
+      from { box-shadow: 0 0 8px rgba(255, 91, 91, 0.5), 0 0 18px rgba(180, 30, 30, 0.35); }
+      to { box-shadow: 0 0 16px rgba(255, 119, 119, 0.95), 0 0 34px rgba(200, 35, 35, 0.8); }
+    }
+
+    #startLineup {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: min(92vw, 660px);
+      height: clamp(220px, 42vh, 330px);
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+
+    #startBtn {
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      transform: translate(-50%, -50%);
+    }
+
+    .start-lineup-character {
+      position: absolute;
+      bottom: 0;
+      height: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    #startIron { left: 2%; width: clamp(76px, 13vw, 125px); }
+    #startCaptain { left: 20%; width: clamp(76px, 13vw, 125px); }
+    #startThobe {
+      left: 50%;
+      bottom: 0;
+      width: clamp(104px, 17vw, 165px);
+      z-index: 2;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+    #startSpider { right: 20%; width: clamp(76px, 13vw, 125px); }
+    #startHulk { right: 2%; width: clamp(86px, 15vw, 145px); }
+
+    #startIron, #startCaptain, #startSpider, #startHulk {
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    #startIron:hover, #startCaptain:hover, #startSpider:hover, #startHulk:hover {
+      filter: drop-shadow(0 0 8px rgba(255, 235, 74, 0.7));
+    }
+  </style>
+</head>
+<body>
+  <video id="bgVideo" loop playsinline>
+    <source src="bg.mp4" type="video/mp4">
+  </video>
+  <video id="startBackdrop" autoplay muted loop playsinline aria-hidden="true">
+    <source src="start-screen-background.mp4" type="video/mp4">
+  </video>
+
+  <img id="characterPop" src="side-character.png" alt="">
+  <img id="dizzyStars" src="dizzy-stars.png" alt="">
+  <img id="captainShield" src="captain-shield.png" alt="">
+  <img id="spiderWeb" src="spider-web.png" alt="">
+  <img id="webImpact" src="web-impact.png" alt="">
+  <img id="hulkAngerMarks" src="hulk-anger-marks.png" alt="">
+  <div id="ironBeam" aria-hidden="true"></div>
+  <div id="ironGlow" aria-hidden="true"></div>
+  <audio id="shieldSound" preload="auto">
+    <source src="shield-block.mp4" type="audio/mp4">
+  </audio>
+  <audio id="spiderWebSound" preload="auto">
+    <source src="spider-web-sound.mp4" type="audio/mp4">
+  </audio>
+  <audio id="ironReactorSound" preload="auto">
+    <source src="iron-reactor-sound.mp4" type="audio/mp4">
+  </audio>
+  <audio id="hulkAngerSound" preload="auto">
+    <source src="hulk-anger-sound.mp4" type="audio/mp4">
+  </audio>
+
+  <div class="content">
+    <h1>ABU FAHAD WAITING</h1>
+    <img class="doomsday-logo" src="doomsday-logo-transparent.png" alt="Doomsday">
+    <div id="countdown"></div>
+  </div>
+
+  <div id="startScreen">
+    <div id="startLineup">
+      <img id="startIron" class="start-lineup-character" src="iron-character.png" alt="">
+      <img id="startCaptain" class="start-lineup-character" src="captain-character.png" alt="">
+      <img id="startThobe" class="start-lineup-character" src="side-character.png" alt="">
+      <img id="startSpider" class="start-lineup-character" src="spider-character.png" alt="">
+      <img id="startHulk" class="start-lineup-character" src="hulk-character.png" alt="">
+    </div>
+    <button id="startBtn">CLICK HERE</button>
+  </div>
+  <button id="startMuteBtn" type="button" aria-label="تشغيل صوت الخلفية">🔇</button>
+
+  <script>
+    const releaseDate = new Date("2026-12-18T00:00:00");
+    const startScreen = document.getElementById("startScreen");
+    const startBackdrop = document.getElementById("startBackdrop");
+    const startMuteBtn = document.getElementById("startMuteBtn");
+    let startBackdropMuted = true;
+    function setStartBackdropMuted(muted) {
+      startBackdropMuted = muted;
+      startBackdrop.muted = muted;
+      startBackdrop.volume = 0.25;
+      startMuteBtn.textContent = muted ? "🔇" : "🔊";
+      startMuteBtn.setAttribute("aria-label", muted ? "تشغيل صوت الخلفية" : "كتم صوت الخلفية");
+    }
+    function enableStartBackdropSound() {
+      if (startScreen.style.display === "none") return;
+      setStartBackdropMuted(false);
+      startBackdrop.play().catch(() => {});
+    }
+    document.addEventListener("pointerdown", enableStartBackdropSound, { once: true });
+    startMuteBtn.addEventListener("click", () => {
+      setStartBackdropMuted(!startBackdropMuted);
+      if (!startBackdropMuted) startBackdrop.play().catch(() => {});
+    });
+    const startHeroElements = {
+      iron: document.getElementById("startIron"),
+      captain: document.getElementById("startCaptain"),
+      spider: document.getElementById("startSpider"),
+      hulk: document.getElementById("startHulk"),
+    };
+    const startCaptainShield = document.getElementById("captainShield");
+    const startSpiderWeb = document.getElementById("spiderWeb");
+    const startWebImpact = document.getElementById("webImpact");
+    const startIronBeam = document.getElementById("ironBeam");
+    const startIronGlow = document.getElementById("ironGlow");
+    const startHulkAnger = document.getElementById("hulkAngerMarks");
+    const startShieldSound = document.getElementById("shieldSound");
+    const startSpiderSound = document.getElementById("spiderWebSound");
+    const startIronSound = document.getElementById("ironReactorSound");
+    const startHulkSound = document.getElementById("hulkAngerSound");
+    let startHeroEffectTimer = null;
+
+    function clearStartHeroEffect() {
+      clearTimeout(startHeroEffectTimer);
+      startCaptainShield.classList.remove("active");
+      startSpiderWeb.classList.remove("active");
+      startWebImpact.classList.remove("active");
+      startIronBeam.classList.remove("active");
+      startIronGlow.classList.remove("active");
+      startHulkAnger.classList.remove("active");
+    }
+
+    function playStartHeroEffect(hero) {
+      clearStartHeroEffect();
+      const character = startHeroElements[hero];
+      const rect = character.getBoundingClientRect();
+
+      if (hero === "captain") {
+        const shieldSize = Math.min(110, Math.max(52, rect.width * 0.72));
+        startCaptainShield.style.width = `${shieldSize}px`;
+        startCaptainShield.style.left = `${rect.left + rect.width / 2}px`;
+        startCaptainShield.style.top = `${rect.top + rect.height * 0.5}px`;
+        void startCaptainShield.offsetWidth;
+        startCaptainShield.classList.add("active");
+        startShieldSound.currentTime = 0;
+        startShieldSound.play().catch(() => {});
+      }
+
+      if (hero === "iron") {
+        const reactorWidth = Math.min(22, Math.max(10, rect.width * 0.12));
+        const reactorHeight = Math.min(14, Math.max(6, rect.height * 0.05));
+        const reactorX = rect.left + rect.width * 0.448;
+        const reactorY = rect.top + rect.height * 0.329;
+        const beamSize = Math.max(32, reactorWidth * 2.8);
+        startIronGlow.style.width = `${reactorWidth}px`;
+        startIronGlow.style.height = `${reactorHeight}px`;
+        startIronGlow.style.left = `${reactorX - reactorWidth / 2}px`;
+        startIronGlow.style.top = `${reactorY - reactorHeight / 2}px`;
+        startIronGlow.style.setProperty("--iron-flip", "1");
+        startIronBeam.style.width = `${beamSize}px`;
+        startIronBeam.style.height = `${beamSize}px`;
+        startIronBeam.style.left = `${reactorX}px`;
+        startIronBeam.style.top = `${reactorY}px`;
+        void startIronGlow.offsetWidth;
+        startIronBeam.classList.add("active");
+        startIronGlow.classList.add("active");
+        startIronSound.currentTime = 0;
+        startIronSound.play().catch(() => {});
+      }
+
+      if (hero === "spider") {
+        const targetRect = document.getElementById("startBtn").getBoundingClientRect();
+        const sourceX = rect.left + rect.width * 0.5;
+        const sourceY = rect.top + rect.height * 0.44;
+        const targetX = targetRect.left + targetRect.width / 2;
+        const targetY = targetRect.top + targetRect.height / 2;
+        const deltaX = targetX - sourceX;
+        const deltaY = targetY - sourceY;
+        const webSize = Math.hypot(deltaX, deltaY) / Math.SQRT2;
+        const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 45;
+        startSpiderWeb.style.width = `${webSize}px`;
+        startSpiderWeb.style.height = `${webSize}px`;
+        startSpiderWeb.style.left = `${sourceX}px`;
+        startSpiderWeb.style.top = `${sourceY}px`;
+        startSpiderWeb.style.transform = `rotate(${angle}deg)`;
+        void startSpiderWeb.offsetWidth;
+        startSpiderWeb.classList.add("active");
+        startSpiderSound.currentTime = 0;
+        startSpiderSound.play().catch(() => {});
+        setTimeout(() => {
+          if (!startSpiderWeb.classList.contains("active")) return;
+          startWebImpact.style.width = "96px";
+          startWebImpact.style.left = `${targetX}px`;
+          startWebImpact.style.top = `${targetY}px`;
+          startWebImpact.classList.add("active");
+        }, 420);
+      }
+
+      if (hero === "hulk") {
+        const marksSize = Math.min(42, Math.max(22, rect.width * 0.14));
+        startHulkAnger.style.width = `${marksSize}px`;
+        startHulkAnger.style.left = `${rect.left + rect.width / 2}px`;
+        startHulkAnger.style.top = `${rect.top + rect.height * 0.08 - marksSize * 0.08}px`;
+        startHulkAnger.style.setProperty("--hulk-flip", "1");
+        void startHulkAnger.offsetWidth;
+        startHulkAnger.classList.add("active");
+        startHulkSound.currentTime = 0;
+        startHulkSound.play().catch(() => {});
+      }
+
+      startHeroEffectTimer = setTimeout(clearStartHeroEffect, 1300);
+    }
+
+    Object.entries(startHeroElements).forEach(([hero, element]) => {
+      element.addEventListener("click", () => playStartHeroEffect(hero));
+    });
+
+    function updateCountdown() {
+      const now = new Date();
+      let diff = Math.max(0, releaseDate - now);
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      diff %= (1000 * 60 * 60 * 24);
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      diff %= (1000 * 60 * 60);
+
+      const minutes = Math.floor(diff / (1000 * 60));
+      diff %= (1000 * 60);
+
+      const seconds = Math.floor(diff / 1000);
+
+      document.getElementById("countdown").innerText =
+        `${days}D\u00A0\u00A0${hours}H\u00A0\u00A0${minutes}M\u00A0\u00A0${seconds}S`;
+    }
+
+    document.getElementById("startBtn").addEventListener("click", async () => {
+      const video = document.getElementById("bgVideo");
+      const content = document.querySelector(".content");
+      const startBtn = document.getElementById("startBtn");
+      const characterPop = document.getElementById("characterPop");
+      const dizzyStars = document.getElementById("dizzyStars");
+      const captainShield = document.getElementById("captainShield");
+      const spiderWeb = document.getElementById("spiderWeb");
+      const webImpact = document.getElementById("webImpact");
+      const hulkAngerMarks = document.getElementById("hulkAngerMarks");
+      const ironBeam = document.getElementById("ironBeam");
+      const ironGlow = document.getElementById("ironGlow");
+      const shieldSound = document.getElementById("shieldSound");
+      const spiderWebSound = document.getElementById("spiderWebSound");
+      const ironReactorSound = document.getElementById("ironReactorSound");
+      const hulkAngerSound = document.getElementById("hulkAngerSound");
+      const characters = [
+        "side-character.png",
+        "iron-character.png",
+        "captain-character.png",
+        "spider-character.png",
+        "hulk-character.png",
+      ];
+      const positions = [
+        "peek-right",
+        "peek-left",
+        "peek-top-left",
+        "peek-bottom-right",
+        "peek-top-right",
+        "peek-bottom-left",
+        "peek-right-vertical",
+        "peek-left-vertical",
+      ];
+      const characterWeights = {
+        "iron-character.png": 3,
+      };
+      let lastCharacter = null;
+      let lastPosition = null;
+      let nextCharacterTimer = null;
+      let exitAnimation = null;
+      let effectsFollowTimer = null;
+      let ironSoundContext = null;
+
+      function playIronReactorSound() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!ironSoundContext && AudioContextClass) {
+          try {
+            ironSoundContext = new AudioContextClass();
+            const source = ironSoundContext.createMediaElementSource(ironReactorSound);
+            const gain = ironSoundContext.createGain();
+            gain.gain.value = 2.5;
+            source.connect(gain).connect(ironSoundContext.destination);
+          } catch (_) {}
+        }
+
+        if (ironSoundContext?.state === "suspended") ironSoundContext.resume();
+        ironReactorSound.currentTime = 0;
+        ironReactorSound.volume = 1;
+        ironReactorSound.play().catch(() => {});
+      }
+      function showRandomCharacter() {
+        if (exitAnimation) {
+          exitAnimation.cancel();
+          exitAnimation = null;
+        }
+        const availableCharacters = characters.filter((character) => character !== lastCharacter);
+        const totalWeight = availableCharacters.reduce((total, character) => total + (characterWeights[character] || 1), 0);
+        let randomWeight = Math.random() * totalWeight;
+        const character = availableCharacters.find((item) => {
+          randomWeight -= characterWeights[item] || 1;
+          return randomWeight < 0;
+        }) || availableCharacters[0];
+        const availablePositions = positions.filter((position) => position !== lastPosition);
+        const position = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+        lastCharacter = character;
+        lastPosition = position;
+        characterPop.src = character;
+        characterPop.className = position;
+        if (character === "iron-character.png" && position === "peek-left") {
+          characterPop.classList.add("iron-left");
+        }
+        void characterPop.offsetWidth;
+        characterPop.classList.add("show");
+        nextCharacterTimer = setTimeout(showRandomCharacter, 6200);
+      }
+
+      characterPop.addEventListener("click", () => {
+        if (!characterPop.classList.contains("show") || dizzyStars.classList.contains("active") || captainShield.classList.contains("active") || spiderWeb.classList.contains("active") || webImpact.classList.contains("active") || hulkAngerMarks.classList.contains("active") || ironBeam.classList.contains("active") || ironGlow.classList.contains("active")) return;
+
+        clearTimeout(nextCharacterTimer);
+        const position = positions.find((item) => characterPop.classList.contains(item));
+        const isCaptain = characterPop.src.includes("captain-character.png");
+        const isSpider = characterPop.src.includes("spider-character.png");
+        const isIron = characterPop.src.includes("iron-character.png");
+        const isHulk = characterPop.src.includes("hulk-character.png");
+
+        const placeHulkAnger = () => {
+          const rect = characterPop.getBoundingClientRect();
+          const fromTop = position === "peek-top-right" || position === "peek-top-left";
+          const marksSize = Math.min(42, Math.max(22, rect.width * 0.14));
+          const headX = rect.left + rect.width / 2;
+          const headY = rect.top + rect.height * (fromTop ? 0.92 : 0.08);
+          const verticalDirection = fromTop ? 1 : -1;
+          hulkAngerMarks.style.width = `${marksSize}px`;
+          hulkAngerMarks.style.left = `${headX}px`;
+          hulkAngerMarks.style.top = `${headY + verticalDirection * marksSize * 0.08}px`;
+          hulkAngerMarks.style.setProperty("--hulk-flip", fromTop ? "-1" : "1");
+        };
+
+        const followActiveEffect = () => {
+          const rect = characterPop.getBoundingClientRect();
+          const fromTop = position === "peek-top-right" || position === "peek-top-left";
+
+          if (captainShield.classList.contains("active")) {
+            const shieldSize = Math.min(165, Math.max(92, rect.width * 0.7));
+            captainShield.style.width = `${shieldSize}px`;
+            captainShield.style.left = `${rect.left + rect.width / 2}px`;
+            captainShield.style.top = `${rect.top + rect.height * (fromTop ? 0.68 : 0.5)}px`;
+          }
+
+          if (ironGlow.classList.contains("active")) {
+            const reactorWidth = Math.min(34, Math.max(15, rect.width * 0.12));
+            const reactorHeight = Math.min(20, Math.max(8, rect.height * 0.05));
+            const reactorX = rect.left + rect.width * 0.448;
+            const reactorY = rect.top + rect.height * (fromTop ? 0.671 : 0.329);
+            const beamSize = Math.max(42, reactorWidth * 2.8);
+            ironGlow.style.width = `${reactorWidth}px`;
+            ironGlow.style.height = `${reactorHeight}px`;
+            ironGlow.style.left = `${reactorX - reactorWidth / 2}px`;
+            ironGlow.style.top = `${reactorY - reactorHeight / 2}px`;
+            ironBeam.style.width = `${beamSize}px`;
+            ironBeam.style.height = `${beamSize}px`;
+            ironBeam.style.left = `${reactorX}px`;
+            ironBeam.style.top = `${reactorY}px`;
+          }
+
+          if (dizzyStars.classList.contains("active")) {
+            const size = Math.min(72, Math.max(40, rect.width * 0.3));
+            dizzyStars.style.width = `${size}px`;
+            dizzyStars.style.left = `${rect.left + rect.width / 2}px`;
+            dizzyStars.style.top = `${rect.top + rect.height * (fromTop ? 0.84 : 0.09)}px`;
+          }
+
+          if (hulkAngerMarks.classList.contains("active")) {
+            placeHulkAnger();
+          }
+
+          if (spiderWeb.classList.contains("active")) {
+            const logoRect = document.querySelector(".doomsday-logo").getBoundingClientRect();
+            const targetX = logoRect.left + logoRect.width / 2;
+            const targetY = logoRect.top + logoRect.height / 2;
+            let sourceX = rect.left + rect.width / 2;
+            let sourceY = rect.top + rect.height * 0.46;
+
+            if (position === "peek-right") {
+              sourceX = rect.left + rect.width * 0.15;
+            } else if (position === "peek-left") {
+              sourceX = rect.left + rect.width * 0.85;
+            } else if (fromTop) {
+              sourceY = rect.top + rect.height * 0.65;
+            } else {
+              sourceY = rect.top + rect.height * 0.35;
+            }
+
+            const deltaX = targetX - sourceX;
+            const deltaY = targetY - sourceY;
+            const webSize = Math.hypot(deltaX, deltaY) / Math.SQRT2;
+            const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 45;
+            spiderWeb.style.width = `${webSize}px`;
+            spiderWeb.style.height = `${webSize}px`;
+            spiderWeb.style.left = `${sourceX}px`;
+            spiderWeb.style.top = `${sourceY}px`;
+            spiderWeb.style.transform = `rotate(${angle}deg)`;
+          }
+        };
+
+        if (isCaptain) {
+          const rect = characterPop.getBoundingClientRect();
+          const shieldSize = Math.min(165, Math.max(92, rect.width * 0.7));
+          let shieldX = rect.left + rect.width / 2;
+          let shieldY = rect.top + rect.height * 0.5;
+
+          if (position === "peek-top-right" || position === "peek-top-left") {
+            shieldY = rect.top + rect.height * 0.68;
+          }
+
+          shieldX = Math.min(window.innerWidth - shieldSize / 2, Math.max(shieldSize / 2, shieldX));
+          shieldY = Math.min(window.innerHeight - shieldSize / 2, Math.max(shieldSize / 2, shieldY));
+          captainShield.style.width = `${shieldSize}px`;
+          captainShield.style.left = `${shieldX}px`;
+          captainShield.style.top = `${shieldY}px`;
+          captainShield.classList.add("active");
+          shieldSound.currentTime = 0;
+          shieldSound.play().catch(() => {});
+        }
+
+        if (isIron) {
+          const rect = characterPop.getBoundingClientRect();
+          const fromTop = position === "peek-top-right" || position === "peek-top-left";
+          const reactorWidth = Math.min(34, Math.max(15, rect.width * 0.12));
+          const reactorHeight = Math.min(20, Math.max(8, rect.height * 0.05));
+          const reactorX = rect.left + rect.width * 0.448;
+          const reactorY = rect.top + rect.height * (fromTop ? 0.671 : 0.329);
+          ironGlow.style.width = `${reactorWidth}px`;
+          ironGlow.style.height = `${reactorHeight}px`;
+          ironGlow.style.left = `${reactorX - reactorWidth / 2}px`;
+          ironGlow.style.top = `${reactorY - reactorHeight / 2}px`;
+          ironGlow.style.setProperty("--iron-flip", fromTop ? "-1" : "1");
+          const beamSize = Math.max(42, reactorWidth * 2.8);
+          ironBeam.style.width = `${beamSize}px`;
+          ironBeam.style.height = `${beamSize}px`;
+          ironBeam.style.left = `${reactorX}px`;
+          ironBeam.style.top = `${reactorY}px`;
+          ironBeam.classList.add("active");
+          ironGlow.classList.add("active");
+          playIronReactorSound();
+        }
+
+        if (isHulk) {
+          placeHulkAnger();
+          hulkAngerMarks.classList.add("active");
+          hulkAngerSound.currentTime = 0;
+          hulkAngerSound.play().catch(() => {});
+        }
+
+        if (isSpider) {
+          const rect = characterPop.getBoundingClientRect();
+          const logoRect = document.querySelector(".doomsday-logo").getBoundingClientRect();
+          const targetX = logoRect.left + logoRect.width / 2;
+          const targetY = logoRect.top + logoRect.height / 2;
+          let sourceX = rect.left + rect.width / 2;
+          let sourceY = rect.top + rect.height * 0.46;
+
+          if (position === "peek-right") {
+            sourceX = Math.max(0, rect.left + rect.width * 0.15);
+          } else if (position === "peek-left") {
+            sourceX = Math.min(window.innerWidth, rect.left + rect.width * 0.85);
+          } else if (position === "peek-top-right" || position === "peek-top-left") {
+            sourceY = Math.max(0, rect.top + rect.height * 0.65);
+          } else {
+            sourceY = Math.min(window.innerHeight, rect.top + rect.height * 0.35);
+          }
+
+          const deltaX = targetX - sourceX;
+          const deltaY = targetY - sourceY;
+          const distance = Math.hypot(deltaX, deltaY);
+          const webSize = distance / Math.SQRT2;
+          const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 45;
+          spiderWeb.style.width = `${webSize}px`;
+          spiderWeb.style.height = `${webSize}px`;
+          spiderWeb.style.left = `${sourceX}px`;
+          spiderWeb.style.top = `${sourceY}px`;
+          spiderWeb.style.transform = `rotate(${angle}deg)`;
+          spiderWeb.classList.add("active");
+          spiderWebSound.currentTime = 0;
+          spiderWebSound.play().catch(() => {});
+
+          setTimeout(() => {
+            if (!spiderWeb.classList.contains("active")) return;
+            const impactSize = Math.min(380, Math.max(170, logoRect.width * 0.64));
+            webImpact.style.width = `${impactSize}px`;
+            webImpact.style.left = `${targetX}px`;
+            webImpact.style.top = `${targetY}px`;
+            webImpact.classList.add("active");
+          }, 420);
+        }
+
+        const placeStarsAtHead = () => {
+          const rect = characterPop.getBoundingClientRect();
+          const size = Math.min(72, Math.max(40, rect.width * 0.3));
+          let centerX = rect.left + rect.width / 2;
+          let centerY = rect.top + rect.height * 0.09;
+
+          if (position === "peek-top-right" || position === "peek-top-left") {
+            centerY = rect.top + rect.height * 0.84;
+          }
+
+          if (position === "peek-right") {
+            centerX = window.innerWidth - size * 0.38;
+          } else if (position === "peek-left") {
+            centerX = size * 0.38;
+          }
+
+          centerX = Math.min(window.innerWidth - size / 2, Math.max(size / 2, centerX));
+          centerY = Math.min(window.innerHeight - size / 2, Math.max(size / 2, centerY));
+          dizzyStars.style.width = `${size}px`;
+          dizzyStars.style.left = `${centerX}px`;
+          dizzyStars.style.top = `${centerY}px`;
+        };
+
+        if (!isCaptain && !isSpider && !isIron && !isHulk) {
+          placeStarsAtHead();
+          dizzyStars.classList.add("active");
+
+          characterPop.animate(
+            [
+              { rotate: "0deg" },
+              { rotate: "-8deg" },
+              { rotate: "8deg" },
+              { rotate: "-6deg" },
+              { rotate: "0deg" },
+            ],
+            { duration: 700, iterations: 2, easing: "ease-in-out" },
+          );
+        }
+
+        if (effectsFollowTimer) clearInterval(effectsFollowTimer);
+        followActiveEffect();
+        effectsFollowTimer = setInterval(followActiveEffect, 16);
+
+        setTimeout(() => {
+          if (effectsFollowTimer) clearInterval(effectsFollowTimer);
+          effectsFollowTimer = null;
+          dizzyStars.classList.remove("active");
+          captainShield.classList.remove("active");
+          spiderWeb.classList.remove("active");
+          webImpact.classList.remove("active");
+          hulkAngerMarks.classList.remove("active");
+          ironBeam.classList.remove("active");
+          ironGlow.classList.remove("active");
+          const currentTransform = getComputedStyle(characterPop).transform;
+          characterPop.style.pointerEvents = "none";
+          exitAnimation = characterPop.animate(
+            [
+              { transform: currentTransform, opacity: 1 },
+              { transform: `${currentTransform} translateY(${window.innerHeight + 240}px)`, opacity: 0 },
+            ],
+            { duration: 380, easing: "ease-in", fill: "forwards" },
+          );
+
+          setTimeout(() => {
+            characterPop.classList.remove("show");
+            characterPop.style.pointerEvents = "";
+            nextCharacterTimer = setTimeout(showRandomCharacter, 1800);
+          }, 400);
+        }, 1400);
+      });
+      try {
+        video.muted = false;
+        video.volume = 0.6;
+        video.style.display = "block";
+        await video.play();
+        content.style.display = "block";
+        clearStartHeroEffect();
+        startScreen.style.display = "none";
+        startBackdrop.pause();
+        startBackdrop.style.display = "none";
+        startMuteBtn.style.display = "none";
+        nextCharacterTimer = setTimeout(showRandomCharacter, 900);
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+      } catch (e) {
+        video.style.display = "none";
+        alert("اضغط مرة ثانية لو ما اشتغل الصوت");
+      }
+    });
+  </script>
+</body>
+</html>
